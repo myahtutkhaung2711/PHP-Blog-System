@@ -1,10 +1,20 @@
-<div class="bg-light border-end vh-100 p-3">
-    <h5>Menu</h5>
-    <ul class="list-unstyled">
-        <li><a href="index.php" class="d-block py-2">Dashboard</a></li>
-        <li><a href="all-blogs.php" class="d-block py-2">All Blogs</a></li>
-        <li><a href="add-blog.php" class="d-block py-2">Add Blog</a></li>
-        <li><a href="all-categories.php" class="d-block py-2">All Categories</a></li>
-        <li><a href="add-category.php" class="d-block py-2">Add Category</a></li>
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end vh-100 shadow-sm" style="width: 250px;">
+    <h5 class="text-dark fw-bold mb-3">Menu</h5>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item mb-1">
+            <a href="index.php" class="nav-link link-dark fw-bold"> Dashboard</a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="all-blogs.php" class="nav-link link-dark fw-bold"> All Blogs</a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="add-blog.php" class="nav-link link-dark fw-bold">Add Blog</a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="all-categories.php" class="nav-link link-dark fw-bold">All Categories</a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="add-category.php" class="nav-link link-dark fw-bold">Add Category</a>
+        </li>
     </ul>
 </div>

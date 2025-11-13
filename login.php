@@ -1,6 +1,7 @@
 <?php
 include('includes/header.php');
 include('config/connection.php');
+include('config/constants.php');
 
 if (isset($_POST['login'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
@@ -16,13 +17,13 @@ if (isset($_POST['login'])) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_role'] = $user['role']; // 1 = Admin, 2 = Super Admin
+        $_SESSION['user_role'] = $user['role'];
 
         // ✅ Redirect based on role
-        if ($user['role'] == 1 || $user['role'] == 2) {
-            header("Location: admin/index.php");
+        if ($user['role'] == 'admin' || $user['role'] == 'superadmin') {
+            header("Location: " . BASE_URL . "admin/index.php");
         } else {
-            header("Location: index.php");
+            header("Location: " . BASE_URL . "index.php");
         }
         exit();
     } else {
@@ -31,7 +32,7 @@ if (isset($_POST['login'])) {
 }
 ?>
 
-<div class="row justify-content-center">
+<div class="row justify-content-center py-5">
     <div class="col-md-5">
         <div class="card">
             <div class="card-header bg-dark text-white text-center">Login</div>
