@@ -26,7 +26,7 @@ $posts = $conn->query("
     <div class="container-fluid mt-4 p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>All Blog Posts</h2>
-            <a href="create-post.php" class="btn btn-success">Create New Post</a>
+            <a href="add-blog.php" class="btn btn-outline-success">Create New Post</a>
         </div>
     
         <div class="table-responsive">
@@ -51,8 +51,8 @@ $posts = $conn->query("
                                 <td><?php echo htmlspecialchars($post['author'] ?? 'Admin'); ?></td>
                                 <td><?php echo date('d M Y', strtotime($post['created_at'])); ?></td>
                                 <td>
-                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-sm btn-info">Edit</a>
-                                    <a href="delete-post.php?id=<?php echo $post['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
+                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-sm btn-outline-info">Edit</a>
+                                    <a href="delete-post.php?id=<?php echo $post['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
