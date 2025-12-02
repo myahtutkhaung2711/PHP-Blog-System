@@ -77,7 +77,6 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
 
             </div>
         </div>
-
     </div>
 </div>
 
