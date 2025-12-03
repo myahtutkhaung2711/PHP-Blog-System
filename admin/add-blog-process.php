@@ -36,17 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Rename the file to prevent conflicts
-        $image_name = time() . '_' . preg_replace("/[^a-zA-Z0-9.-]/", "_", $file_name);
+        $new_name = time() . '_' . preg_replace("/[^a-zA-Z0-9.-]/", "_", $file_name);
+
+        // Upload folder path
         $upload_dir = '../uploads/blogs/';
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0755, true);
         }
 
-        if (!move_uploaded_file($file_tmp, $upload_dir . $image_name)) {
+        // Move the uploaded file
+        if (!move_uploaded_file($file_tmp, $upload_dir . $new_name)) {
             $_SESSION['message'] = "Failed to upload image.";
             header("Location: add-blog.php");
             exit;
         }
+
+        // Store relative path in database (so database has blogs/filename)
+        $image_name = 'blogs/' . $new_name;
     }
 
     // Insert blog into database
