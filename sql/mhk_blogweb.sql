@@ -3,20 +3,20 @@ USE mhk_blogweb;
 -- --------------------------------------------------------
 -- USERS TABLE
 -- --------------------------------------------------------
-CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  role ENUM('user', 'admin', 'superadmin') DEFAULT 'user',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    password VARCHAR(255),
+    role ENUM('superadmin','admin','customer') DEFAULT 'customer',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO users (name, email, password, role) VALUES
-('Super Admin', 'superadmin@gmail.com', MD5('12345'), 'superadmin'),
-('Admin User', 'admin@gmail.com', MD5('12345'), 'admin'),
-('User 1', 'user@gmail.com', MD5('12345'), 'user');
-('User 2', 'user2@gmail.com', MD5('12345', 'user'))
+('Super Admin', 'superadmin@gmail.com', '$2y$10$QZ9gQ2Z6RrZ7zYxU4m1FKeTn6mP5H7EJwR2H0Yl6z2YvV1kP9kqGa', 'superadmin'),
+('Admin User', 'admin@gmail.com', '$2y$10$QZ9gQ2Z6RrZ7zYxU4m1FKeTn6mP5H7EJwR2H0Yl6z2YvV1kP9kqGa', 'admin'),
+('User 1', 'user@gmail.com', '$2y$10$QZ9gQ2Z6RrZ7zYxU4m1FKeTn6mP5H7EJwR2H0Yl6z2YvV1kP9kqGa', 'customer'),
+('User 2', 'user2@gmail.com', '$2y$10$QZ9gQ2Z6RrZ7zYxU4m1FKeTn6mP5H7EJwR2H0Yl6z2YvV1kP9kqGa', 'customer');
 
 
 -- --------------------------------------------------------

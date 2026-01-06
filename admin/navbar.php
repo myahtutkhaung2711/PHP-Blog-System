@@ -13,6 +13,6 @@ if (session_status() === PHP_SESSION_NONE) {
                 <?php echo ($_SESSION['user_role'] == 2) ? '- Super Admin' : '- Admin'; ?>)
             </span>
         <?php endif; ?>
-        <a href="../logout.php" class="btn btn-sm btn-danger ms-2">Logout</a>
+        <a href="../index.php" class="btn btn-sm btn-danger ms-2">Logout</a>
     </div>
 </nav>

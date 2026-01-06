@@ -16,5 +16,11 @@
         <li class="nav-item mb-1">
             <a href="add-category.php" class="nav-link link-dark fw-bold">Add Category</a>
         </li>
+        <li class="nav-item mb-1">
+            <a href="all-users.php" class="nav-link link-dark fw-bold">All Users</a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="add-user.php" class="nav-link link-dark fw-bold">Add Users</a>
+        </li>
     </ul>
 </div>
