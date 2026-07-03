@@ -1,90 +1,68 @@
 <?php
-if(session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/../config/functions.php';
+requireAdmin();
 
-require_once('../config/config.php');
-require_once('../config/connection.php');
-include('../includes/head.php');
-include('navbar.php');
-
-$blog_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-if($blog_id <= 0 ) {
-    $_SESSION['message'] = 'Invalid blog ID.';
-    header('Location: manage-blogs.php');
-    exit;
-}
-
-$stmt = $conn->prepare("SELECT * FROM posts WHERE id = ?");
-$stmt->bind_param("i", $blog_id);
+$id = max(0, (int) ($_GET['id'] ?? 0));
+$stmt = $conn->prepare('SELECT * FROM posts WHERE id = ? LIMIT 1');
+$stmt->bind_param('i', $id);
 $stmt->execute();
-$result = $stmt->get_result();
-$blog = $result->fetch_assoc();
+$blog = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if(!$blog) {
-    $_SESSION['message'] = 'Blog not found.';
-    header('Location: manage-blogs.php');
-    exit;
+if (!$blog) {
+    flash('Blog post not found.', 'warning');
+    redirect(url('admin/all-blogs.php'));
 }
 
-$categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
+$pageTitle = 'Edit Blog Post - MHK Admin';
+$categories = $conn->query('SELECT * FROM categories ORDER BY name ASC');
+
+include __DIR__ . '/../includes/head.php';
+include __DIR__ . '/navbar.php';
 ?>
-
-<div class="d-flex">
-    <?php include('sidebar.php') ?>
-
-    <div class="container-fluid p-4">
-        <h1 class="mb-3">Edit Blog</h1>
-        <hr>
-
-        <?php 
-        if(isset($_SESSION['message'])) {
-            echo '<div class="alert alert-info">'.$_SESSION['message'].' </div>';
-            unset($_SESSION['message']);
-        }
-        ?>
-
-        <div class="card-shadow sm">
-            <div class="card-body">
-                <form action="edit-blog-process.php" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="id" value="<?= $blog['id']; ?>">
-
-                    <div class="mb-3">
-                        <label class="form-label">Blog Title</label>
-                        <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($blog['title']); ?>" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <select name="category_id" class="form-select" required>
-                            <option value="">-- Select Category --</option>
-                            <?php while($cate = $categories->fetch_assoc()) { ?>
-                                <option value="<?= $cate['id'] ?>" <?= $cate['id'] == $blog['category_id'] ? 'selectd' : ''; ?>>
-                                    <?= htmlspecialchars($cate['name']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Fetured Image</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
-                        <?php if($blog['image'])  { ?> 
-                            <img src="../uploads/blogs/<?= $blog['image']; ?>" alt="" style="height:80px;margin-top:10px;">
-                        <?php } ?>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Content</label>'
-                        <textarea name="content" class="form-control" rows="6" required><?= htmlspecialchars($blog['content']); ?></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-outline-dark">Update Blog Post</button>
-                </form>
+<div class="admin-layout">
+    <?php include __DIR__ . '/sidebar.php'; ?>
+    <main class="admin-content">
+        <?php if ($flash = flash()): ?><div class="alert alert-<?= e($flash['type']); ?>"><?= e($flash['message']); ?></div><?php endif; ?>
+        <div class="admin-heading"><h1>Edit Blog Post</h1></div>
+        <form class="content-panel" action="<?= url('admin/edit-blog-process.php'); ?>" method="POST" enctype="multipart/form-data">
+            <?= csrfField(); ?>
+            <input type="hidden" name="id" value="<?= (int) $blog['id']; ?>">
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-control" value="<?= e($blog['title']); ?>" required maxlength="255">
             </div>
-        </div>
-    </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Category</label>
+                    <select name="category_id" class="form-select" required>
+                        <?php while ($cat = $categories->fetch_assoc()): ?>
+                            <option value="<?= (int) $cat['id']; ?>" <?= (int) $cat['id'] === (int) $blog['category_id'] ? 'selected' : ''; ?>><?= e($cat['name']); ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="published" <?= $blog['status'] === 'published' ? 'selected' : ''; ?>>Published</option>
+                        <option value="draft" <?= $blog['status'] === 'draft' ? 'selected' : ''; ?>>Draft</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3">
+                <label class="form-label">Featured Image</label>
+                <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
+                <?php if ($blog['image']): ?>
+                    <img class="admin-thumb mt-2" src="<?= e(postImageUrl($blog['image'])); ?>" alt="<?= e($blog['title']); ?>">
+                <?php endif; ?>
+            </div>
+            <div class="mt-3">
+                <label class="form-label">Content</label>
+                <textarea name="content" rows="10" class="form-control" required><?= e($blog['content']); ?></textarea>
+            </div>
+            <button type="submit" class="btn btn-dark mt-4">Update Post</button>
+        </form>
+    </main>
 </div>
-
-<?php include('../includes/footer-script.php'); ?>
+<?php include __DIR__ . '/../includes/footer-script.php'; ?>

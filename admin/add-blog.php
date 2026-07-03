@@ -1,83 +1,53 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/../config/functions.php';
+requireAdmin();
 
-require_once('../config/config.php');
-require_once('../config/connection.php');
+$pageTitle = 'Create Blog Post - MHK Admin';
+$categories = $conn->query('SELECT * FROM categories ORDER BY name ASC');
 
-include('../includes/head.php');
-
-// Fetch categories for dropdown
-$categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
+include __DIR__ . '/../includes/head.php';
+include __DIR__ . '/navbar.php';
 ?>
-
-<?php include('navbar.php'); ?>
-
-<div class="d-flex">
-
-    <!-- Sidebar -->
-    <?php include('sidebar.php'); ?>
-
-    <!-- Main Content -->
-    <div class="container-fluid p-4">
-
-        <h1 class="mb-3">Add New Blog</h1>
-        <p class="lead">Fill out the form below to create a new blog post.</p>
-        <hr>
-
-        <!-- Blog Form -->
-        <div class="card shadow-sm">
-            <div class="card-body">
-
-                <?php 
-                // Success / Error message
-                if (isset($_SESSION['message'])) {
-                    echo '<div class="alert alert-info">'.$_SESSION['message'].'</div>';
-                    unset($_SESSION['message']);
-                }
-                ?>
-
-                <form action="add-blog-process.php" method="POST" enctype="multipart/form-data">
-
-                    <!-- Title -->
-                    <div class="mb-3">
-                        <label class="form-label">Blog Title</label>
-                        <input type="text" name="title" class="form-control" required>
-                    </div>
-
-                    <!-- Category -->
-                    <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <select name="category_id" class="form-select" required>
-                            <option value="">-- Select Category --</option>
-                            <?php while ($cat = $categories->fetch_assoc()) { ?>
-                                <option value="<?= $cat['id']; ?>">
-                                    <?= htmlspecialchars($cat['name']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </div>
-
-                    <!-- Image -->
-                    <div class="mb-3">
-                        <label class="form-label">Featured Image</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
-                    </div>
-
-                    <!-- Content -->
-                    <div class="mb-3">
-                        <label class="form-label">Content</label>
-                        <textarea name="content" rows="6" class="form-control" required></textarea>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-outline-dark">Create Blog</button>
-                </form>
-
+<div class="admin-layout">
+    <?php include __DIR__ . '/sidebar.php'; ?>
+    <main class="admin-content">
+        <?php if ($flash = flash()): ?><div class="alert alert-<?= e($flash['type']); ?>"><?= e($flash['message']); ?></div><?php endif; ?>
+        <div class="admin-heading"><h1>Create Blog Post</h1></div>
+        <form class="content-panel" action="<?= url('admin/add-blog-process.php'); ?>" method="POST" enctype="multipart/form-data">
+            <?= csrfField(); ?>
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-control" required maxlength="255">
             </div>
-        </div>
-    </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Category</label>
+                    <select name="category_id" class="form-select" required>
+                        <option value="">Select category</option>
+                        <?php while ($cat = $categories->fetch_assoc()): ?>
+                            <option value="<?= (int) $cat['id']; ?>"><?= e($cat['name']); ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3">
+                <label class="form-label">Featured Image</label>
+                <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
+            </div>
+            <div class="mt-3">
+                <label class="form-label">Content</label>
+                <textarea name="content" rows="10" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-dark mt-4">Create Post</button>
+        </form>
+    </main>
 </div>
-
-<?php include('../includes/footer-script.php'); ?>
+<?php include __DIR__ . '/../includes/footer-script.php'; ?>

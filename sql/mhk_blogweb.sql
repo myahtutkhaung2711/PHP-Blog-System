@@ -89,3 +89,26 @@ CREATE TABLE IF NOT EXISTS settings (
 
 INSERT INTO settings (site_name, site_description)
 VALUES ('MHK Blog Management System', 'A PHP + MySQL blog project by Mya Htut Khaung 💙');
+
+-- Updated SQL to modify the posts table to allow NULL values for user_id and add an updated_at column 
+
+ALTER TABLE posts
+  MODIFY user_id INT NULL,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL,
+  subject VARCHAR(180) NOT NULL,
+  message TEXT NOT NULL,
+  is_read TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+UPDATE posts
+SET image = CONCAT('blogs/', image)
+WHERE image IS NOT NULL
+  AND image <> ''
+  AND image NOT LIKE 'blogs/%'
+  AND image NOT LIKE 'uploads/%';

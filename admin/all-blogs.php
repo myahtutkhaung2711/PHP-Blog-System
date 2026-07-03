@@ -1,71 +1,56 @@
 <?php
-// Start session and include config
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/../config/functions.php';
+requireAdmin();
 
-require_once('../config/config.php');        
-require_once('../config/connection.php');    
-
-include('../includes/head.php');
-
-// Fetch all posts with category name
+$pageTitle = 'Blog Posts - MHK Admin';
 $blogs = $conn->query("
-    SELECT posts.*, categories.name AS category_name
+    SELECT posts.*, categories.name AS category_name, users.name AS author_name
     FROM posts
     LEFT JOIN categories ON posts.category_id = categories.id
-    ORDER BY posts.id 
+    LEFT JOIN users ON posts.user_id = users.id
+    ORDER BY posts.created_at DESC, posts.id DESC
 ");
+
+include __DIR__ . '/../includes/head.php';
+include __DIR__ . '/navbar.php';
 ?>
-
-<?php include('navbar.php'); ?>
-
-<div class="d-flex">
-    <?php  include('sidebar.php'); ?>
-
-    <div class="container-fluid mt-4 p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>All Blog Posts</h2>
-            <a href="add-blog.php" class="btn btn-outline-success">Create New Post</a>
+<div class="admin-layout">
+    <?php include __DIR__ . '/sidebar.php'; ?>
+    <main class="admin-content">
+        <?php if ($flash = flash()): ?><div class="alert alert-<?= e($flash['type']); ?>"><?= e($flash['message']); ?></div><?php endif; ?>
+        <div class="admin-heading">
+            <h1>Blog Posts</h1>
+            <a href="<?= url('admin/add-blog.php'); ?>" class="btn btn-dark">Create New Post</a>
         </div>
-    
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Category</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+        <div class="content-panel table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Status</th><th>Created</th><th class="text-end">Actions</th></tr></thead>
                 <tbody>
-                    <?php if($blogs->num_rows > 0): ?>
-                        <?php $serial = 1; ?>
-                        <?php while($blog = $blogs->fetch_assoc()): ?>
-                            <tr>
-                                <td><?= $serial++; ?></td>
-                                <td><?= htmlspecialchars($blog['title']); ?></td>
-                                <td><?= htmlspecialchars($blog['category_name'] ?? 'Uncategorized'); ?></td>
-                                <td><?= date('d M Y', strtotime($blog['created_at'])); ?></td>
-                                <td>
-                                    <a href="edit-blog.php?id=<?= $blog['id']; ?>" class="btn btn-sm btn-outline-info">Edit</a>
-                                    <a href="delete-blog.php?id=<?= $blog['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this blog?')">Delete</a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
+                <?php if ($blogs->num_rows > 0): ?>
+                    <?php while ($blog = $blogs->fetch_assoc()): ?>
                         <tr>
-                            <td colspan="5" class="text-center">No blogs found.</td>
+                            <td><?= e($blog['title']); ?></td>
+                            <td><?= e($blog['category_name'] ?? 'Uncategorized'); ?></td>
+                            <td><?= e($blog['author_name'] ?? 'Admin'); ?></td>
+                            <td><span class="badge text-bg-<?= $blog['status'] === 'published' ? 'success' : 'secondary'; ?>"><?= e($blog['status']); ?></span></td>
+                            <td><?= date('M d, Y', strtotime($blog['created_at'])); ?></td>
+                            <td class="text-end">
+                                <a href="<?= url('admin/edit-blog.php?id=' . (int) $blog['id']); ?>" class="btn btn-sm btn-outline-dark">Edit</a>
+                                <form action="<?= url('admin/delete-blog.php'); ?>" method="POST" class="d-inline" onsubmit="return confirm('Delete this blog post?')">
+                                    <?= csrfField(); ?>
+                                    <input type="hidden" name="id" value="<?= (int) $blog['id']; ?>">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                                </form>
+                            </td>
                         </tr>
-                    <?php endif; ?>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr><td colspan="6" class="text-center text-muted">No blog posts found.</td></tr>
+                <?php endif; ?>
                 </tbody>
             </table>
         </div>
-    </div>
-
+    </main>
 </div>
-
-
-<?php include('../includes/footer-script.php'); ?>
+<?php include __DIR__ . '/../includes/footer-script.php'; ?>

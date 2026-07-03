@@ -6,7 +6,9 @@ $database = 'mhk_blogweb';
 
 $conn = mysqli_connect($servername, $username, $password, $database);
 
-if(!$conn) {
-    die('Database Connection Failed: '.mysqli_connect_error());
+if (!$conn) {
+    die('Database connection failed: ' . mysqli_connect_error());
 }
+
+mysqli_set_charset($conn, 'utf8mb4');
 ?>

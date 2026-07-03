@@ -1,78 +1,53 @@
-<?php 
-if(session_status() === PHP_SESSION_NONE) {
-    session_start();
+<?php
+require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/../config/functions.php';
+requireAdmin();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect(url('admin/all-blogs.php'));
 }
 
-require_once('../config/config.php');
-require_once('../config/connection.php');
+verifyCsrf();
 
-if($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = intval($_POST['id']);
-    $title = trim($_POST['title']);
-    $category_id = intval($_POST['category_id']);
-    $content = trim($_POST['content']);
+$id = (int) ($_POST['id'] ?? 0);
+$title = trim($_POST['title'] ?? '');
+$categoryId = (int) ($_POST['category_id'] ?? 0);
+$content = trim($_POST['content'] ?? '');
+$status = in_array($_POST['status'] ?? '', ['draft', 'published'], true) ? $_POST['status'] : 'draft';
 
-    if(empty($title) || empty($category_id) || empty($content)) {
-        $_SESSION['message'] = 'All fields are required.';
-        header('Location: edit-blog.php?id=' . $id);
-        exit();
-    }
-
-    $stmt = $conn->prepare("SELECT image FROM posts WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $blog = $result->fetch_assoc();
-    $stmt->close();
-
-    if(!$blog) {
-        $_SESSION['message'] = 'Blog not found.';
-        header('Location: manage-blogs.php');
-        exit;
-    }
-
-    $image_name = $blog['image'];
-
-    if(!isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $file_tmp = $_FILES['image']['tmp_name'];
-        $file_name = $_FILES['image']['name'];
-        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-        $allowed_exts = ['jpg', 'jpeg', 'png', 'gif'];
-
-        if(!in_array($file_ext, $allowed_exts)) {
-            $_SESSION['message'] = 'Invalid image format. Allowed formats: jpg, jpeg, png, gif.';
-            header('Location: edit-blog.php?id=' . $id);
-            exit;
-        }
-
-        $new_image_name = time() . '_' . preg_replace("/[^a-zA-Z0-9.-]/", "_", $file_name);
-        $upload_dir = '../uploads/blogs/';
-        if(!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
-
-        if (move_uploaded_file($file_tmp, $upload_dir . $new_image_name)) {
-            if($image_name && file_exists($upload_dir . $image_name)) {
-                unlink($upload_dir . $image_name);
-            }
-            $image_name = $new_image_name;
-        }
-    }
-
-    $stmt = $conn->prepare("UPDATE posts SET title = ?, category_id = ?, content = ?, image = ? WHERE id = ?");
-    $stmt->bind_param("sissi", $title, $category_id, $content, $image_name, $id);
-
-    if($stmt->execute()) {
-        $_SESSION['message'] = 'Blog updated successfully!';
-    } else {
-        $_SESSION['message'] = 'Error updating blog: ' . $stmt->error;
-    }
-
-    $stmt->close();
-    $conn->close();
-
-    header('Location: edit-blog.php?id=' . $id);
-    exit;
-} else {
-    header('Location: manage-blogs.php');
-    exit;
+if ($id <= 0 || $title === '' || $categoryId <= 0 || $content === '') {
+    flash('Title, category, and content are required.', 'danger');
+    redirect(url('admin/edit-blog.php?id=' . $id));
 }
+
+$stmt = $conn->prepare('SELECT image FROM posts WHERE id = ? LIMIT 1');
+$stmt->bind_param('i', $id);
+$stmt->execute();
+$blog = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$blog) {
+    flash('Blog post not found.', 'warning');
+    redirect(url('admin/all-blogs.php'));
+}
+
+$image = $blog['image'];
+$error = null;
+$newImage = saveUploadedImage($_FILES['image'] ?? [], $error);
+if ($error) {
+    flash($error, 'danger');
+    redirect(url('admin/edit-blog.php?id=' . $id));
+}
+if ($newImage) {
+    deletePostImage($image);
+    $image = $newImage;
+}
+
+$stmt = $conn->prepare('UPDATE posts SET category_id = ?, title = ?, content = ?, image = ?, status = ? WHERE id = ?');
+$stmt->bind_param('issssi', $categoryId, $title, $content, $image, $status, $id);
+$stmt->execute();
+$stmt->close();
+
+flash('Blog post updated successfully.', 'success');
+redirect(url('admin/all-blogs.php'));
 ?>

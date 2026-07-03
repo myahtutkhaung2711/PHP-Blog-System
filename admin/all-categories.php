@@ -1,60 +1,44 @@
-<?php 
-if(session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+<?php
+require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/../config/functions.php';
+requireAdmin();
 
-require_once('../config/config.php');
-require_once('../config/connection.php');
+$pageTitle = 'Categories - MHK Admin';
+$categories = $conn->query('SELECT categories.*, COUNT(posts.id) AS post_count FROM categories LEFT JOIN posts ON posts.category_id = categories.id GROUP BY categories.id ORDER BY categories.name ASC');
 
-include('../includes/head.php');
-
-$categories = $conn->query("
-    SELECT * FROM categories ORDER BY name ASC
-");
+include __DIR__ . '/../includes/head.php';
+include __DIR__ . '/navbar.php';
 ?>
-
-<?php include('navbar.php'); ?>
-
-<div class="d-flex">
-    <?php include('sidebar.php') ?>
-
-    <div class="container-fluid mt-4 p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>All Categories</h2>
-            <a href="add-category.php" class="btn btn-outline-success">Add New Category</a>
+<div class="admin-layout">
+    <?php include __DIR__ . '/sidebar.php'; ?>
+    <main class="admin-content">
+        <?php if ($flash = flash()): ?><div class="alert alert-<?= e($flash['type']); ?>"><?= e($flash['message']); ?></div><?php endif; ?>
+        <div class="admin-heading">
+            <h1>Categories</h1>
+            <a href="<?= url('admin/add-category.php'); ?>" class="btn btn-dark">Add Category</a>
         </div>
-
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+        <div class="content-panel table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Name</th><th>Description</th><th>Posts</th><th class="text-end">Actions</th></tr></thead>
                 <tbody>
-                    <?php if($categories->num_rows > 0): ?>
-                        <?php $serial = 1; ?>
-                        <?php while($category = $categories->fetch_assoc()): ?>
-                            <tr>
-                                <td><?= $serial++ ?></td>
-                                <td><?= htmlspecialchars($category['name']); ?></td>
-                                <td>
-                                    <a href="edit-category.php?id=<?= $category['id']; ?>" class="btn btn-sm btn-outline-info">Edit</a>
-                                    <a href="delete-category.php?id=<?= $category['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this category?')">Delete</a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="3" class="text-center">No categories found.</td>
-                        </tr>
-                    <?php endif; ?>
+                <?php while ($category = $categories->fetch_assoc()): ?>
+                    <tr>
+                        <td><?= e($category['name']); ?></td>
+                        <td><?= e(excerpt($category['description'] ?? '', 90)); ?></td>
+                        <td><?= (int) $category['post_count']; ?></td>
+                        <td class="text-end">
+                            <a href="<?= url('admin/edit-category.php?id=' . (int) $category['id']); ?>" class="btn btn-sm btn-outline-dark">Edit</a>
+                            <form action="<?= url('admin/delete-category.php'); ?>" method="POST" class="d-inline" onsubmit="return confirm('Delete this category? Posts will become uncategorized.')">
+                                <?= csrfField(); ?>
+                                <input type="hidden" name="id" value="<?= (int) $category['id']; ?>">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
                 </tbody>
             </table>
         </div>
-    </div>
+    </main>
 </div>
-
-<?php include('../includes/footer-scripts.php'); ?>
+<?php include __DIR__ . '/../includes/footer-script.php'; ?>

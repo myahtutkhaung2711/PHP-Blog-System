@@ -1,41 +1,31 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/../config/functions.php';
+requireAdmin();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect(url('admin/all-blogs.php'));
 }
 
-require_once('../config/config.php');
-require_once('../config/connection.php');
+verifyCsrf();
+$id = (int) ($_POST['id'] ?? 0);
 
-$blog_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-if($blog_id <= 0) {
-    $_SESSION['message'] = 'Invalid blog ID.';
-    header('Location: manage-blogs.php');
-    exit;
-}
-
-$stmt = $conn->prepare("SELECT image FROM blogs WHERE id = ?");
-$stmt->bind_param("i", $blog_id);
+$stmt = $conn->prepare('SELECT image FROM posts WHERE id = ? LIMIT 1');
+$stmt->bind_param('i', $id);
 $stmt->execute();
-$result = $stmt->get_result();
-$blog = $result->fetch_assoc();
+$blog = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-// DELETE BLOG 
-$stmt = $conn->prepare("DELETE FROM blogs WHERE id = ?");
-$stmt->bind_param("i", $blog_id);
-if ($stmt->execute()) {
-    // Delete image file
-    if ($blog['image'] && file_exists('../uploads/blogs/' . $blog['image'])) {
-        unlink('../uploads/blogs/' . $blog['image']);
-    }
-    $_SESSION['message'] = "Blog deleted successfully!";
+if ($blog) {
+    $stmt = $conn->prepare('DELETE FROM posts WHERE id = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $stmt->close();
+    deletePostImage($blog['image']);
+    flash('Blog post deleted successfully.', 'success');
 } else {
-    $_SESSION['message'] = "Error deleting blog: " . $stmt->error;
+    flash('Blog post not found.', 'warning');
 }
 
-$stmt->close();
-$conn->close();
-
-header("Location: manage-blogs.php");
-exit;
+redirect(url('admin/all-blogs.php'));
 ?>

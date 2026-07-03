@@ -1,17 +1,16 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../config/functions.php';
+startSession();
+$pageTitle = $pageTitle ?? 'MHK Blog Admin';
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHK Blog Admin</title>
-
-    <link rel="stylesheet" href="<?php echo BASE_URL;?>assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL;?>assets/css/style.css">
+    <title><?= e($pageTitle); ?></title>
+    <link rel="stylesheet" href="<?= url('assets/css/bootstrap.min.css'); ?>">
+    <link rel="stylesheet" href="<?= url('assets/css/style.css'); ?>">
 </head>
-<body class="bg-light">
+<body class="admin-body">

@@ -1,4 +1,4 @@
-    <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/script.js"></script>
+<script src="<?= url('assets/js/bootstrap.bundle.min.js'); ?>"></script>
+<script src="<?= url('assets/js/script.js'); ?>"></script>
 </body>
 </html>

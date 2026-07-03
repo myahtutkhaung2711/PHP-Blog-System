@@ -1,20 +1,12 @@
-<div class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end vh-100 shadow-sm" style="width: 250px;">
-    <h5 class="text-dark fw-bold mb-3">Menu</h5>
-    <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item mb-1">
-            <a href="index.php" class="nav-link link-dark fw-bold"> Dashboard</a>
-        </li>
-        <li class="nav-item mb-1">
-            <a href="all-blogs.php" class="nav-link link-dark fw-bold"> All Blogs</a>
-        </li>
-        <li class="nav-item mb-1">
-            <a href="add-blog.php" class="nav-link link-dark fw-bold">Add Blog</a>
-        </li>
-        <li class="nav-item mb-1">
-            <a href="all-categories.php" class="nav-link link-dark fw-bold">All Categories</a>
-        </li>
-        <li class="nav-item mb-1">
-            <a href="add-category.php" class="nav-link link-dark fw-bold">Add Category</a>
-        </li>
-    </ul>
-</div>
+<aside class="admin-sidebar">
+    <div class="sidebar-title">Menu</div>
+    <a href="<?= url('admin/index.php'); ?>">Dashboard</a>
+    <a href="<?= url('admin/all-blogs.php'); ?>">Blog Posts</a>
+    <a href="<?= url('admin/add-blog.php'); ?>">Create Post</a>
+    <a href="<?= url('admin/all-categories.php'); ?>">Categories</a>
+    <a href="<?= url('admin/messages.php'); ?>">Messages</a>
+    <?php if (currentUserIsSuperAdmin()): ?>
+        <a href="<?= url('admin/all-users.php'); ?>">Users</a>
+        <a href="<?= url('admin/add-user.php'); ?>">Add User</a>
+    <?php endif; ?>
+</aside>
